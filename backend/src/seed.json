@@ -1,0 +1,10 @@
+[
+  { "title": "Set up project repository", "description": "Initialise Git, add a .gitignore and push the first commit to GitHub.", "status": "completed", "priority": "low", "dueDate": null },
+  { "title": "Design the task data model", "description": "Agree on fields, enums for status and priority, and the date format used by the API.", "status": "completed", "priority": "medium", "dueDate": "2026-10-20" },
+  { "title": "Build REST endpoints", "description": "CRUD routes for tasks with validation and centralised error handling.", "status": "completed", "priority": "high", "dueDate": "2026-10-22" },
+  { "title": "Fix flaky date parsing", "description": "Due dates sometimes show one day early for users west of UTC. Parse YYYY-MM-DD as a local date.", "status": "pending", "priority": "high", "dueDate": "2026-10-21" },
+  { "title": "Complete assignment", "description": "Build the full-stack task manager", "status": "in_progress", "priority": "high", "dueDate": "2026-10-26" },
+  { "title": "Write API documentation", "description": "Document every endpoint with Swagger and add example requests.", "status": "in_progress", "priority": "medium", "dueDate": "2026-10-28" },
+  { "title": "Polish mobile layout", "description": "Check the dashboard, forms and dialogs at phone widths and fix any overflow.", "status": "pending", "priority": "medium", "dueDate": "2026-10-29" },
+  { "title": "Record demo video", "description": "Short walkthrough of creating, editing, filtering and deleting tasks.", "status": "pending", "priority": "low", "dueDate": "2026-10-30" }
+]

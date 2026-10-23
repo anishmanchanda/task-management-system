@@ -1,0 +1,170 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Task Management API",
+    "version": "1.0.0",
+    "description": "REST API for the Task Management System. Data is stored in memory and resets when the server restarts. All errors share the shape `{ \"error\": { \"message\": string, \"details\"?: [{ \"field\", \"message\" }] } }`."
+  },
+  "servers": [{ "url": "http://localhost:5000" }],
+  "tags": [{ "name": "Tasks" }],
+  "paths": {
+    "/api/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "List tasks (search, filter, sort, paginate)",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive match on title or description" },
+          { "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/Status" } },
+          { "name": "priority", "in": "query", "schema": { "$ref": "#/components/schemas/Priority" } },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "enum": ["createdAt", "priority", "dueDate"], "default": "createdAt" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of tasks",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TaskList" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "post": {
+        "tags": ["Tasks"],
+        "summary": "Create a task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TaskInput" },
+              "example": { "title": "Complete assignment", "description": "Build the full-stack task manager", "status": "pending", "priority": "high", "dueDate": "2026-10-05" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TaskEnvelope" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/api/tasks/{id}": {
+      "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Get a single task",
+        "responses": {
+          "200": { "description": "The task", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TaskEnvelope" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Tasks"],
+        "summary": "Update a task",
+        "description": "`title` and `description` are required. Omitted optional fields keep their current values.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TaskInput" } } }
+        },
+        "responses": {
+          "200": { "description": "Updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TaskEnvelope" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Tasks"],
+        "summary": "Delete a task",
+        "responses": {
+          "200": {
+            "description": "Deleted; returns the removed task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Task" }, "message": { "type": "string", "example": "Task deleted" } }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Status": { "type": "string", "enum": ["pending", "in_progress", "completed"] },
+      "Priority": { "type": "string", "enum": ["low", "medium", "high"] },
+      "TaskInput": {
+        "type": "object",
+        "required": ["title", "description"],
+        "properties": {
+          "title": { "type": "string", "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 1000 },
+          "status": { "$ref": "#/components/schemas/Status", "default": "pending" },
+          "priority": { "$ref": "#/components/schemas/Priority", "default": "medium" },
+          "dueDate": { "type": "string", "format": "date", "nullable": true, "example": "2026-10-05" }
+        }
+      },
+      "Task": {
+        "allOf": [
+          { "$ref": "#/components/schemas/TaskInput" },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "format": "uuid" },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "TaskEnvelope": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Task" } } },
+      "TaskList": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer" },
+              "page": { "type": "integer" },
+              "limit": { "type": "integer" },
+              "totalPages": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string" },
+              "details": {
+                "type": "array",
+                "items": { "type": "object", "properties": { "field": { "type": "string" }, "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Validation failed or malformed request",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "message": "Validation failed", "details": [{ "field": "title", "message": "title is required" }] } }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Task not found",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": { "message": "Task 123 not found" } } } }
+      }
+    }
+  }
+}
