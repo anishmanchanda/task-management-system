@@ -19,13 +19,13 @@ Tasks are stored **in backend memory only** — no database — so data resets w
 | Layer    | Choice                                                   |
 | -------- | -------------------------------------------------------- |
 | Frontend | React 19, Vite, plain CSS (custom properties for theming) |
-| Backend  | Node.js 22+, Express 5, `cors`, `swagger-ui-express`     |
+| Backend  | Node.js 20.12+, Express 5, `cors`, `swagger-ui-express`  |
 | Storage  | In-memory array                                          |
 | Tests    | Node's built-in test runner (`node --test`)              |
 
 ## Getting started
 
-**Prerequisites:** Node.js 22 or newer (uses the built-in `--env-file-if-exists` flag).
+**Prerequisites:** Node.js 20.19+ or 22.12+ (Vite's minimum; the API alone runs on 20.12+). `.env` files are loaded with Node's built-in `process.loadEnvFile()`, so there's no `dotenv` dependency.
 
 ### 1. Backend
 
